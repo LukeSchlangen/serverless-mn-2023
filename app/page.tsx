@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { addDoc, collection, getFirestore, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import { GoogleAuthProvider, User, getAuth, signInWithPopup } from 'firebase/auth';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -20,6 +21,9 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
 
 type Message = {
   userName: string,
@@ -27,6 +31,7 @@ type Message = {
 }
 
 export default function Home() {
+  const [user, setUser] = useState<User>();
   const [displayName, setDisplayName] = useState('');
   const [messageText, setMessageText] = useState('');
   const [messageFeed, setMessageFeed] = useState<Message[]>([]);
@@ -36,7 +41,7 @@ export default function Home() {
       text: messageText,
       time: serverTimestamp(),
     };
-    
+
     addDoc(collection(db, "messages"), newMessage);
   }
 
@@ -54,18 +59,27 @@ export default function Home() {
     return () => unsubscribe();
   }, [])
 
+  const signIn = async () => {
+    const response = await signInWithPopup(auth, provider);
+    setUser(response.user)
+  }
+
   return (
     <main>
-      <h1>Serverless MN</h1>
-      <input onChange={(e) => setDisplayName(e.target.value)} value={displayName} />
-      <input onChange={(e) => setMessageText(e.target.value)} value={messageText} />
-      <button onClick={sendMessage}>Send Message</button>
-      <ul>
-        {messageFeed.map((message) => (<li key={message.text}>
-          {message.userName}: {message.text}
-        </li>))}
-      </ul>
-      <p>Monkey Capybara Flour Flower</p>
+      {user ? <>
+        <h1>Serverless MN</h1>
+        <input onChange={(e) => setDisplayName(e.target.value)} value={displayName} />
+        <input onChange={(e) => setMessageText(e.target.value)} value={messageText} />
+        <button onClick={sendMessage}>Send Message</button>
+        <ul>
+          {messageFeed.map((message) => (<li key={message.text}>
+            {message.userName}: {message.text}
+          </li>))}
+        </ul>
+        <p>Monkey Capybara Flour Flower</p>
+      </> : <>
+        <button onClick={signIn}>Sign In</button>
+      </>}
     </main>
   )
 }
