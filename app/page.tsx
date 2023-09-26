@@ -26,18 +26,18 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 type Message = {
+  id: string,
   userName: string,
   text: string,
 }
 
 export default function Home() {
   const [user, setUser] = useState<User>();
-  const [displayName, setDisplayName] = useState('');
   const [messageText, setMessageText] = useState('');
   const [messageFeed, setMessageFeed] = useState<Message[]>([]);
   const sendMessage = () => {
     const newMessage = {
-      userName: displayName,
+      userName: user?.displayName,
       text: messageText,
       time: serverTimestamp(),
     };
@@ -68,11 +68,10 @@ export default function Home() {
     <main>
       {user ? <>
         <h1>Serverless MN</h1>
-        <input onChange={(e) => setDisplayName(e.target.value)} value={displayName} />
         <input onChange={(e) => setMessageText(e.target.value)} value={messageText} />
         <button onClick={sendMessage}>Send Message</button>
         <ul>
-          {messageFeed.map((message) => (<li key={message.text}>
+          {messageFeed.map((message) => (<li key={message.id}>
             {message.userName}: {message.text}
           </li>))}
         </ul>
