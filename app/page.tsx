@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { addDoc, collection, getFirestore, onSnapshot, query } from 'firebase/firestore';
+import { addDoc, collection, getFirestore, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -34,13 +34,14 @@ export default function Home() {
     const newMessage = {
       userName: displayName,
       text: messageText,
+      time: serverTimestamp(),
     };
     
     addDoc(collection(db, "messages"), newMessage);
   }
 
   useEffect(() => {
-    const q = query(collection(db, "messages"));
+    const q = query(collection(db, "messages"), orderBy('time'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       setMessageFeed(querySnapshot.docs.map((doc) => {
         return {
